@@ -6,14 +6,14 @@ SELECT
 	DATE_PART('day', AGE(s.shipping_start_fact_datetime, s.shipping_end_fact_datetime)) AS full_day_at_shipping,
 	CASE 
 		WHEN shipping_end_fact_datetime > shipping_plan_datetime THEN 1
-		ELSE 0
+		ELSE NULL
 	END AS is_delay,
 	CASE
 		WHEN s.status = 'finished' THEN 1
 		ELSE 0
 	END AS is_shipping_finish,
 	CASE 
-		WHEN s.shipping_end_fact_datetime > i.shipping_plan_datetime THEN DATE_PART('day', AGE(i.shipping_plan_datetime, s.shipping_end_fact_datetime))
+		WHEN s.shipping_end_fact_datetime > i.shipping_plan_datetime THEN EXTRACT (DAY FROM (s.shipping_end_fact_datetime - s.shipping_start_fact_datetime))
 		ELSE 0
 	END AS delay_day_at_shipping,
 	i.payment_amount,
