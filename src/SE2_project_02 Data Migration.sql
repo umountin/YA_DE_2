@@ -61,27 +61,19 @@ WITH q AS (
 		ROW_NUMBER() OVER (PARTITION BY shippingid ORDER BY state_datetime DESC) AS row_num
 	FROM public.shipping
 ),
-qs AS (
+q1 AS (
 	SELECT
-		shippingid,
-		state_datetime AS shipping_start_fact_datetime
+		shippingid, 
+		MAX(CASE WHEN state = 'booked' THEN state_datetime END) AS shipping_start_fact_datetime,
+		MAX(CASE WHEN state = 'recieved' THEN state_datetime END) AS shipping_end_fact_datetime
 	FROM public.shipping
-	WHERE state = 'booked'
-),
-qe AS (
-	SELECT
-		shippingid,
-		state_datetime AS shipping_end_fact_datetime
-	FROM public.shipping
-	WHERE state = 'recieved'
 )
 SELECT
 	q.shippingid,
 	q.status,
 	q.state,
-	qs.shipping_start_fact_datetime,
-	qe.shipping_end_fact_datetime
+	q1.shipping_start_fact_datetime,
+	q1.shipping_end_fact_datetime
 FROM q
-LEFT JOIN qs ON qs.shippingid = q.shippingid
-LEFT JOIN qe ON qe.shippingid = q.shippingid
+LEFT JOIN q1 ON q1.shippingid = q.shippingid
 WHERE q.row_num = 1;
